@@ -41,14 +41,18 @@ class updateTable:
     self.myresult = self.mycursor.fetchall()
     return self.myresult
   
-  def getFetchData(self):
-    return self.myresult
-  
   def insertDataPlate(self,value):
     query = "insert into hikvision (hikvision_plat,hikvision_time) values(%s,%s)"
-    value
+    # value = ("w1234df", value)
     updateTable.executeQuery(self,query,value)
     updateTable.commit(self)
+  
+  def getPlateLatestTime(self):
+    query = "Select hikvision_time from hikvision order by hikvision_time desc limit 1"
+    updateTable.executeQuery(self,query)
+    data = updateTable.fetchData(self)
+    data = data[0][0] if len(data) > 0 else None
+    return data
   
 
   def insertDataTransaksi(self,value):
@@ -56,8 +60,8 @@ class updateTable:
     value = ('dafi',value)
     updateTable.executeQuery(self,query,value)
     return updateTable.commit(self,True)
-  
-  def updateLicenseTable(self,value_id,value_time):
+
+  def mergeLicenseTable(self,value_id,value_time):
     query = ("UPDATE hikvision \
               SET transaksi_id = %s \
               WHERE transaksi_id IS NULL \
@@ -81,6 +85,7 @@ class updateTable:
 if __name__ == "__main__":
   db = updateTable('localhost','root','','tambang')
   db.connectDatabase()
+  print(db.getPlateLatestTime())
   
   # db.executeQuery(query)
   # print(db.fetchData())

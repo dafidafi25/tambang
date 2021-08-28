@@ -57,7 +57,7 @@ while deviceConnected:
             else:
                 try:
                     ip = "192.168.1.64"
-                    port = "80"
+                    port = "80" 
                     host = 'http://'+ip + ':'+ port
                     cam = isapiClient(host, 'admin', '-arngnennscfrer2')
                     assert gateControl.getGateStatus() == False,"Gate Still Openning"
@@ -68,7 +68,11 @@ while deviceConnected:
                 else:
                     waktu_transaksi = cam.systemTime()
                     get_id = db.insertDataTransaksi(waktu_transaksi)
-                    db.updateLicenseTable(get_id,waktu_transaksi)
+                    latestLicense = db.getPlateLatestTime()
+                    licenseDataArr = cam.getNumberPlates(latestLicense)
+                    if len(licenseDataArr) >0 :
+                        db.insertDataPlate(licenseDataArr)
+                        db.mergeLicenseTable(get_id,waktu_transaksi)
                     gateControl.openGate()
     
     sleep(1)

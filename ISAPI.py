@@ -40,6 +40,16 @@ def dateTimeConvert(data):
             # print(data)
             return data
 
+def filterListResponse(data,timeFilter = None):
+    timeFilter = timeFilter if timeFilter != None else datetime.min
+    arrData=[]
+    for x in range(len(data)):
+        currPLateTime = dateTimeConvert(data[x]['captureTime'])
+        if(currPLateTime > timeFilter):
+            arrData.append((data[x]['plateNumber'],currPLateTime))
+    return arrData
+    
+
 
 class isapiClient:
     def __init__(self, host, login=None, password=None, timeout=3, isapi_prefix='ISAPI'):
@@ -68,14 +78,17 @@ class isapiClient:
         else:
             return session,True
 
-    def getNumberPlates(self):
+    def getNumberPlates(self,time = None):
         payload = "<AfterTime ><picTime>%s</picTime></AfterTime>".format("0")
         try:
             response = self.req.request(
             method='get', url= self.host + "/ISAPI/Traffic/channels/1/vehicleDetect/plates", timeout=self.timeout, stream=True, data=payload)
         except requests.exceptions.RequestException as e:
             print(e)
-        finally:
+        else:
+            response = response_parser(response)
+            if len(response['Plates']) == 3:
+                return filterListResponse(response['Plates']['Plate'],time)
             return response
 
     def systemTime(self):
@@ -83,18 +96,19 @@ class isapiClient:
         method='get', url= self.host + "/ISAPI/System/time", timeout=self.timeout, stream=True)
         response = response_parser(response)
         response = dateTimeConvert(response['Time']['localTime'])
+
         return response
     
     
 
 
 if __name__ == "__main__":
-    ip = "158.140.163.210"
+    ip = "192.168.1.64"
     port = "80"
     host = 'http://'+ip + ':'+ port
     cam = isapiClient(host, 'admin', '-arngnennscfrer2')
-    res = cam.systemTime()
-    print(res)
+    res = cam.getNumberPlates()
+    # print(res)
 
 
 
