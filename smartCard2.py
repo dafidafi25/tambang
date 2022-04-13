@@ -120,12 +120,19 @@ class PrintObserver(ReaderObserver):
 
 def DetectReader():
     readermonitor = ReaderMonitor()
+    print(readermonitor)
     readerobserver = PrintObserver()
     readermonitor.addObserver(readerobserver)
-    sleep(3)
+    sleep(1)
     readermonitor.deleteObserver(readerobserver)
     return readerobserver.getReader()
 
-
-
-
+if __name__ == "__main__":
+    deviceConnected = False
+    test = DetectReader()
+    print(test)
+    # while len(DetectReader()) == 0:
+    #     print("Trying to detect reader")
+    #     sleep(1)
+    # print("reader Detected")
+    # smartReader = smartCard()
