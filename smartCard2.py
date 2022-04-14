@@ -66,7 +66,6 @@ class smartCard:
             auth += [1]
         else:
             return 'Auth Not Valid'
-        # print(auth)
         if smartCard.sendCmd(auth,self) == 0x90:
             return True
         else:
@@ -107,11 +106,11 @@ class PrintObserver(ReaderObserver):
         for card in addedreaders:
             if card not in self.cards:
                 self.cards +=[card]
-                # print("Smartcard Detected: ", card)
+                print("Smartcard Detected: ", card)
                 
 
         for card in removedreaders:
-            # print("-Removed: ", card)
+            print("-Removed: ", card)
             if card in self.cards:
                 self.cards.remove(card)
     
@@ -124,15 +123,10 @@ def DetectReader():
     readerobserver = PrintObserver()
     readermonitor.addObserver(readerobserver)
     sleep(1)
-    readermonitor.deleteObserver(readerobserver)
+    # readermonitor.deleteObserver(readerobserver)
     return readerobserver.getReader()
 
 if __name__ == "__main__":
     deviceConnected = False
     test = DetectReader()
-    print(test)
-    # while len(DetectReader()) == 0:
-    #     print("Trying to detect reader")
-    #     sleep(1)
-    # print("reader Detected")
-    # smartReader = smartCard()
+ 

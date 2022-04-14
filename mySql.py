@@ -83,10 +83,11 @@ class updateTable:
       return self.mycursor.lastrowid
 
 if __name__ == "__main__":
-  db = updateTable('localhost','root','','tambang')
+ 
+  db = updateTable('localhost','root','root','tambangku')
   db.connectDatabase()
+
+
   print(db.getPlateLatestTime())
+  # print(db.getPlateLatestTime())
   
-  # db.executeQuery(query)
-  # print(db.fetchData())
-  # db.insertDataPlate()

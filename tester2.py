@@ -8,8 +8,11 @@ connection = device[0].createConnection()
 connection.connect()
 print('device connected')
 
+
+
 authA = '00 00 00 00 00 00'
 authB = 'FF FF FF FF FF FF'
+
 
 
 def init(): #Initiate so device can start read TAG
@@ -64,7 +67,11 @@ def readBlock(blockNumber,length,keyType):
         readCmd += bytes([length])
         sendCmd(readCmd)
 
+def writeBlock():
+    print("wawa")
+
 init()
-# setTempAuth(0,authA)
-# setTempAuth(1,authB)
-readBlock(0,16,10)
+
+
+
+readBlock(blockNumber=0, length=16, keyType =10)
