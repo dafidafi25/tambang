@@ -15,6 +15,7 @@ gateControl = gateProcess()
 db = updateTable('localhost','root','','tambang')
 db.connectDatabase()
 
+
 try :
     deviceConnected = smartReader.connect()
     assert deviceConnected, " Device Not Connected"

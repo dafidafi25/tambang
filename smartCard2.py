@@ -1,3 +1,4 @@
+from asyncore import write
 from time import sleep
 from smartcard.System import readers
 from smartcard.ReaderMonitoring import ReaderMonitor, ReaderObserver
@@ -11,15 +12,17 @@ sReaderFirmware = [0xff,0x71,0x00,0x00,0x00]
 authA = [0x00,0x00,0x00,0x00,0x00,0x00]
 authB = [0xff,0xff,0xff,0xff,0xff,0xff]
 
+SECTOR = [4*0,4*1,4*2,4*3,4*4,4*5,4*6,4*7,4*8,4*9,4*10,4*11,4*12,4*13,4*14,4*15]
+
 class smartCard:
     def __init__(self):
         self.reader = readers()
-        self.connected = False
 
     def connect(self):
         self.connection = self.reader[0].createConnection()
         self.connection.connect()
-        return smartCard.isConnected(self)
+
+        return self.isConnected()
 
     def isConnected(self):
         data,sw1,sw2 = self.connection.transmit(sReaderFirmware)
@@ -31,31 +34,34 @@ class smartCard:
     def isNewCard(self): #Initiate so device can start read TAG
         # start1 = [0xff, 0x71, 0x13, 0x06, 0x00]  # set SAM communication to contactless
         start2 = [0xff, 0x71, 0x10, 0x00, 0x00]  # reset SAM communication
-        if smartCard.sendCmd(start2,self) == 0x90:
+        sw1 ,data = self.sendCmd(start2)
+        if sw1 == 0x90:
             return True
         else:
             return False
 
     def readCard(self):
-        smartCard.setTempAuth(0,authA,self)
-        smartCard.setTempAuth(1,authB,self)
-        if smartCard.readBlock(0,16,1,self):
-            return True
+        self.setTempAuth(0,authA)
+        self.setTempAuth(1,authB)
+        sw1,data = self.readBlock(0,16,1)
+        if sw1 ==0x90:
+            return data
         else:
             return False
         
  
-    def setTempAuth(storeNumb,keyNumb,self): # Load & Set Authentication Key to Reader
+    def setTempAuth(self,storeNumb,keyNumb): # Load & Set Authentication Key to Reader
         authKey = [0xFF, 0x82 ,0x00]
         authKey.append(storeNumb)
         authKey.append(0x06)
-        authKey+= keyNumb
-        if smartCard.sendCmd(authKey,self):
+        authKey.extend(keyNumb)
+        sw1 ,data = self.sendCmd(authKey)
+        if sw1 == 0x90:
             return True
         else:
             return False
 
-    def mifareAuth(blockNumber,keyType,self):
+    def mifareAuth(self,blockNumber,keyType):
         auth = [0xFF, 0x86 ,0x00, 0x00, 0x05, 0x01, 0x00]
         auth += [blockNumber]
         if keyType == 0 :
@@ -66,35 +72,192 @@ class smartCard:
             auth += [1]
         else:
             return 'Auth Not Valid'
-        if smartCard.sendCmd(auth,self) == 0x90:
+        sw1 ,data = self.sendCmd(auth)
+        if sw1 == 0x90:
             return True
         else:
             return False
     
-    def readBlock(blockNumber,length,keyType,self):
-        if smartCard.mifareAuth(blockNumber,keyType,self):
+    def readBlock(self,blockNumber,length,keyType):
+        if self.mifareAuth(blockNumber,keyType):
             readCmd = [0xff,0xb0,0x00]
             readCmd.append(blockNumber)
             readCmd.append(length)
-            if smartCard.sendCmd(readCmd,self) == 0x90:
-                return True
+            sw1 ,data = self.sendCmd(readCmd)
+            
+            if sw1 == 0x90:
+                return  (sw1 ,toHexString(data))
             else:
-                return False
+                return (False,None)
+        else:
+            return (False,None)
+
+
+    def writeBlock(self,blockNumber,length,keyType,data):
+        if self.mifareAuth(blockNumber,keyType):
+            writeCmd = [0xff,0xd6,0x00]
+            writeCmd.append(blockNumber)
+            writeCmd.append(length)
+            writeCmd.extend(data)
+            sw1 ,data = self.sendCmd(writeCmd)
+
+        if sw1 == 0x90:
+            return  (sw1 ,toHexString(data))
+        else:
+            return (False,None)
+
+    def valueBlock(self,saldo,sector = 2):
+        block = sector * 4
+        RESERVED_BLOCK = block + 1
+        VALUE_BLOCK = []
+        BYTES = saldo.to_bytes(4,'big')
+        INVERTED_BYTES = self.invertBytes(BYTES)
+        INVERTED_RESERVED_BLOCK =  RESERVED_BLOCK ^ 0xff
+
+        VALUE_BLOCK.extend(BYTES)
+        VALUE_BLOCK.extend(INVERTED_BYTES)
+        VALUE_BLOCK.extend(BYTES)
+        VALUE_BLOCK.append(RESERVED_BLOCK)
+        VALUE_BLOCK.append(INVERTED_RESERVED_BLOCK)
+        VALUE_BLOCK.append(RESERVED_BLOCK)
+        VALUE_BLOCK.append(INVERTED_RESERVED_BLOCK)
+       
+        print(VALUE_BLOCK)
+
+
+    def increment(self,sector,value,key_access):
+        block = sector * 4
+        RESERVED_BLOCK = block + 1
+        SECTOR_TRAILER = block + 3
+
+        #keperluan reset
+        wallet_format, auth_format = self.getValueBlockFormat(50000,RESERVED_BLOCK)
+        self.writeBlock(block,16,1,wallet_format)
+        #keperluan reset
+
+        # value = value.to_bytes(4,'big')
+        # self.setTempAuth(0,bytearray.fromhex(key_access[0:17]))
+        # self.mifareAuth(block,0)
+
+        # cmd = [0xff,0xD7,0x00,block,0x05,0x01]
+        # cmd.extend(value)
+        # sw1,data = self.sendCmd(cmd)
+
+        data = self.readValueBlock(sector,key_access)
+        print(toHexString(data))
+      
+    
+    def decrement(self,sector,value,key_access):
+        
+        print(value)
+        block = sector * 4
+        RESERVED_BLOCK = block + 1
+        SECTOR_TRAILER = block + 3
+      
+        value = [0x00,0x00,0x0f,0xA0]
+
+        self.setTempAuth(0,bytearray.fromhex(key_access[0:17]))
+        self.mifareAuth(block,0)
+
+        cmd = [0xff,0xD7,0x00,block,0x05,0x02]
+        cmd.extend(value)
+        print(toHexString(cmd))
+
+        sw1,data = self.sendCmd(cmd)
+
+        data = self.readValueBlock(sector,key_access)
+        print(toHexString(data))
+
+       
+    def readValueBlock(self,sector,key_access):
+        block = sector * 4
+        RESERVED_BLOCK = block + 1
+        SECTOR_TRAILER = block + 3
+        cmd = [0xff,0xB1,0x00,block,4]
+        sw1,data = self.sendCmd(cmd)
+        
+        if sw1 == 0x90:
+            return data
         else:
             return False
+        
+
     
-    def sendCmd(cmd,self): #Send Command to Reader
+    
+    def sendCmd(self,cmd): #Send Command to Reader
         if debug:
             print("Data dikirim ==>  " + toHexString(cmd))
+    
         data, sw1, sw2 = self.connection.transmit(cmd)
+        
         if debug:
             print ("response : %x %x" % (sw1, sw2))
         if len(data) > 0:
             if debug:
                 print("response Data = ",toHexString(data))
             
-        return sw1
+            
+        return sw1,data
+    
+    def setWalletSector(self,saldo,sector = 2):
+        block = sector * 4
+        sector_trailer = block +3
+        wallet_format,auth_format = self.getValueBlockFormat(saldo,block)
+        self.writeBlock(block,16,1,wallet_format)
+        self.writeBlock(sector_trailer,16,1,auth_format)
 
+
+
+    def getValueBlockFormat(self,saldo,RESERVED_BLOCK):
+        BASIC_AUTH_KEY = [0xff,0xff,0xff,0xff,0xff,0xff]
+        BASIC_ACCESS_BITS = [0xff,0x07,0x80]
+        VALUE_BLOCK = []
+        AUTH_BLOCK = []
+        BYTES = saldo.to_bytes(4,'big')
+        INVERTED_BYTES = self.invertBytes(BYTES)
+        INVERTED_RESERVED_BLOCK =  RESERVED_BLOCK ^ 0xff
+
+        VALUE_BLOCK.extend(BYTES)
+        VALUE_BLOCK.extend(INVERTED_BYTES)
+        VALUE_BLOCK.extend(BYTES)
+        VALUE_BLOCK.append(RESERVED_BLOCK)
+        VALUE_BLOCK.append(INVERTED_RESERVED_BLOCK)
+        VALUE_BLOCK.append(RESERVED_BLOCK)
+        VALUE_BLOCK.append(INVERTED_RESERVED_BLOCK)
+
+        AUTH_BLOCK.append(0xff)
+        AUTH_BLOCK.append(0xff)
+        AUTH_BLOCK.extend(BYTES)
+        AUTH_BLOCK.extend(BASIC_ACCESS_BITS)
+        AUTH_BLOCK.append(0x69)
+        AUTH_BLOCK.extend(BASIC_AUTH_KEY)
+
+        return VALUE_BLOCK, AUTH_BLOCK
+        
+
+    @staticmethod
+    def invertBytes(BYTES):
+        INVERTED_BYTES = []
+        for byte in BYTES:
+            INVERTED_BYTES.append(byte^0xff)
+        return bytes(INVERTED_BYTES)
+
+    @staticmethod
+    def accessBitsChecker(accessbits):
+        for i in range(len(accessbits)):
+            if i == 0:
+                Ic2,Ic1 = (accessbits[i] >> 4, accessbits[i] & 0xf)
+            if i == 1:
+                c1,Ic3 = (accessbits[i] >>4, accessbits[i] & 0xf)
+            if i == 2:
+                c3,c2 = (accessbits[i] >>4, accessbits[i] & 0xf)
+        valid = True
+        valid = False if Ic2 ^ 0xf != c2 else valid
+        valid = False if Ic1 ^ 0xf != c1 else valid
+        valid = False if Ic3 ^ 0xf != c3 else valid
+
+        return valid
+    
 
 class PrintObserver(ReaderObserver):
     def __init__(self):
@@ -127,6 +290,20 @@ def DetectReader():
     return readerobserver.getReader()
 
 if __name__ == "__main__":
-    deviceConnected = False
-    test = DetectReader()
- 
+    sReaderFirmware = [0xff,0x71,0x00,0x00,0x00]
+    authA = [0x00,0x00,0x00,0x00,0x00,0x00]
+    authB = [0xff,0xff,0xff,0xff,0xff,0xff]
+    wallet_auth = [0xff,0xff,0x00,0x00,0xc3,0x50]
+
+    block = 0
+
+    test_smartcard = smartCard()
+    test_smartcard.connect()
+    test_smartcard.isNewCard()
+
+    test_smartcard.setTempAuth(0,wallet_auth)
+    block,key = test_smartcard.getValueBlockFormat(50000,SECTOR[11]+1)
+    
+    # print(test_smartcard.readBlock(SECTOR[11],16,0))
+    
+    # print(valid)
