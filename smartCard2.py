@@ -101,10 +101,10 @@ class smartCard:
             writeCmd.extend(data)
             sw1 ,data = self.sendCmd(writeCmd)
 
-        if sw1 == 0x90:
-            return  (sw1 ,toHexString(data))
-        else:
-            return (False,None)
+            if sw1 == 0x90:
+                return  (sw1 ,toHexString(data))
+            else:
+                return (False,None)
 
     def valueBlock(self,saldo,sector = 2):
         block = sector * 4
@@ -147,26 +147,26 @@ class smartCard:
         print(toHexString(data))
       
     
-    def decrement(self,sector,value,key_access):
+    def decrement(self,sector,value,key_access,auth_type = 0):
         
         print(value)
-        block = sector * 4
+        block = sector
         RESERVED_BLOCK = block + 1
         SECTOR_TRAILER = block + 3
-      
-        value = [0x00,0x00,0x0f,0xA0]
-
-        self.setTempAuth(0,bytearray.fromhex(key_access[0:17]))
-        self.mifareAuth(block,0)
+        value = value.to_bytes(4,'big')
+        # generated_key = bytearray.fromhex(key_access[0:17])
+        self.setTempAuth(auth_type,key_access)
+        self.mifareAuth(block,auth_type)
 
         cmd = [0xff,0xD7,0x00,block,0x05,0x02]
         cmd.extend(value)
         print(toHexString(cmd))
 
-        sw1,data = self.sendCmd(cmd)
+        test = self.sendCmd(cmd)
+        print(test)
 
-        data = self.readValueBlock(sector,key_access)
-        print(toHexString(data))
+        # data = self.readValueBlock(sector,key_access)
+        # print(toHexString(data))
 
        
     def readValueBlock(self,sector,key_access):
@@ -200,7 +200,7 @@ class smartCard:
         return sw1,data
     
     def setWalletSector(self,saldo,sector = 2):
-        block = sector * 4
+        block = sector
         sector_trailer = block +3
         wallet_format,auth_format = self.getValueBlockFormat(saldo,block)
         self.writeBlock(block,16,1,wallet_format)
@@ -301,9 +301,12 @@ if __name__ == "__main__":
     test_smartcard.connect()
     test_smartcard.isNewCard()
 
-    test_smartcard.setTempAuth(0,wallet_auth)
-    block,key = test_smartcard.getValueBlockFormat(50000,SECTOR[11]+1)
-    
-    # print(test_smartcard.readBlock(SECTOR[11],16,0))
-    
+    test_smartcard.setTempAuth(1,authB)
+    test_smartcard.setWalletSector(50000,SECTOR[11])
+    # block,key = test_smartcard.getValueBlockFormat(50000,SECTOR[11]+1)
+    test_smartcard.decrement(SECTOR[11],81,authB,1)
+    print(test_smartcard.readBlock(SECTOR[11],16,1))
+    print(test_smartcard.readBlock(SECTOR[11]+1,16,1))
+    # print(test_smartcard.readBlock(SECTOR[11]+2,16,1))
+    # print(test_smartcard.readBlock(SECTOR[11]+3,16,1))
     # print(valid)

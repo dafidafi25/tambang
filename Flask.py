@@ -61,7 +61,7 @@ def register():
             
             return jsonify({"Message":"RFID Tag Tidak Terdeteksi"}),201
 
-@app.route("/api/card/page", methods=["POST"])
+@app.route("/api/card/page", methods=["GET"])
 def cardByPage():
     data = db.getUserPage(1,1) 
     return jsonify({
@@ -69,5 +69,52 @@ def cardByPage():
         "Message" : "Post Request Success"
     }),202
 
+@app.route("/api/validate/uid", methods=["POST"])
+def validateByUid():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        uidChiper = request.json['uid']
+        result = db.isUidExist(uidChiper)
+        return jsonify(result)
 
-app.run(host="0.0.0.0",port=7000)
+@app.route("/api/get/user/uid", methods=["POST"])
+def getUserByUid():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        uidChiper = request.json['uid']
+        result = db.getUserByUid(uidChiper)
+        return jsonify(result)
+
+@app.route("/api/price/get", methods=["get"])
+def getDevicePrice():
+    result = db.getDevicePrice()
+    return jsonify(result)
+
+@app.route("/api/transaction", methods=["POST"])
+def insertTransaction():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        id = request.json['id']
+        plate_number = request.json['plate_number']
+        price = request.json['price']
+        result = db.insertDataTransaksi(id,plate_number,1,price)
+        return jsonify(result)
+
+@app.route("/api/saldo", methods=["POST"])
+def updateSaldo():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        saldo = request.json['saldo']
+        key = request.json['key']
+        uid = request.json['uid']
+        result = db.updateSaldo(key,uid,saldo)
+        return jsonify(result)
+
+@app.route("/api/transaksi/list", methods=["GET"])
+def getTransaksiList():
+    result = db.getListTransaksi()
+    return jsonify(result)
+
+
+
+app.run(host="0.0.0.0",port=6000)

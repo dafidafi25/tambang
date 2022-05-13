@@ -1,41 +1,24 @@
-from ISAPI import isapiClient,response_parser,dateTimeConvert
-from mySql import updateTable
+from __future__ import print_function
+import time
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
+from pprint import pprint
 
-ip = "192.168.1.64"
-port = "80"
-host = 'http://'+ip + ':'+ port
-cam = isapiClient(host, 'admin', '-arngnennscfrer2')
-db = updateTable('localhost','root','','tambang')
-db.connectDatabase()
+configuration = sib_api_v3_sdk.Configuration()
+configuration.api_key['api-key'] = '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'
 
-print(cam._check_session())
-res = cam.getNumberPlates()
-dbLatestTime = db.getPlateLatestTime()
-plateResponse = response_parser(res)
-
+api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+subject = "My Subject"
+html_content = "<html><body><h1>This is my first transactional email </h1></body></html>"
+sender = {"name":"dafi","email":"dafidafi25@gmail.com"}
+to = [{"email":"dafisteam25@gmail.com","name":"dafi"}]
+reply_to = {"email":"replyto@domain.com","name":"John Doe"}
+headers = {"Some-Custom-Name":"unique-id-1234"}
+params = {"parameter":"My param value","subject":"New Subject"}
+send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=to, reply_to=reply_to, headers=headers, html_content=html_content, sender=sender, subject=subject)
 
 try:
-    listTest = plateResponse['Plates']['Plate']
-    latestTime = dbLatestTime[0][0] if len(dbLatestTime) > 0 else 0
-    print(latestTime)
-except KeyError as err:
-    print(err)
-else:
-    listTester = []
-    for x in range(len(listTest)):
-        # print(listTest[x]['captureTime'])
-        timetest = dateTimeConvert(listTest[x]['captureTime'])
-        if(timetest > latestTime):
-            listTester.append((listTest[x]['plateNumber'],timetest))
-
-    db.insertDataPlate(listTester)
-    
-        
-    # db = updateTable('localhost','root','','tambang')
-    # db.connectDatabase()
-    # db.executeQuery("SELECT * FROM user")
-    # db.fetchData()
-    # print(db.getFetchData())
-
-
-
+    api_response = api_instance.send_transac_email(send_smtp_email)
+    pprint(api_response)
+except ApiException as e:
+    print("Exception when calling SMTPApi->send_transac_email: %s\n" % e)

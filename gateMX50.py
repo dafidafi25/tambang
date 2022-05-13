@@ -81,7 +81,7 @@ if __name__ == "__main__":
     USB_PORT = "/dev/ttyUSB0"
     GATE_ADDRESS = 0x05
     test = gate(GATE_ADDRESS=GATE_ADDRESS,BAUD_RATE= BAUD_RATE,USB_PORT=USB_PORT)
-    status_byte,status_string = test.getGateStatus()
-    test.closeGate()
+    # status_byte,status_string = test.getGateStatus()
+    test.openGate()
     
 

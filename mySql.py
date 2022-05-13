@@ -148,6 +148,16 @@ class databases:
     
     self.executeQuery(query,value)
     return self.commit(True)
+  
+  def getListTransaksi(self):
+    query = "select * from transaksi order by id desc"
+    self.executeQuery(query)
+    row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
+    data = self.fetchData()
+    json_data=[]
+    for result in data:
+      json_data.append(dict(zip(row_headers,result)))
+    return json_data
 
   def mergeLicenseTable(self,value_id,value_time):
     query = ("UPDATE hikvision \

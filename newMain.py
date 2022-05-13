@@ -45,8 +45,6 @@ gateControl = gate(GATE_ADDRESS=int(GATE_ADDRESS),BAUD_RATE= BAUD_RATE,USB_PORT=
 
 
 while True:
-    
-
     while len(listSmartReader) == 0:
         print("Trying to detect reader")
         listSmartReader = DetectReader()
