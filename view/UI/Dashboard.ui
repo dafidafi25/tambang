@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout" stretch="3,3,10,1">
+      <item>
+       <layout class="QHBoxLayout" name="frame_saldo" stretch="1,3">
+        <item>
+         <widget class="QLabel" name="saldo">
+          <property name="font">
+           <font>
+            <pointsize>29</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Saldo Awal : </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="biaya">
+          <property name="font">
+           <font>
+            <pointsize>29</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Biaya</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="frame_sisa_saldo" stretch="1,3">
+        <item>
+         <widget class="QLabel" name="label_sisa_saldo">
+          <property name="font">
+           <font>
+            <pointsize>33</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Sisa Saldo :</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="value_sisa_saldo">
+          <property name="font">
+           <font>
+            <pointsize>29</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="frame_main">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="layout_data">
+          <item>
+           <widget class="QLabel" name="label_nama">
+            <property name="font">
+             <font>
+              <pointsize>16</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Nama</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="value_nama">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_uid">
+            <property name="font">
+             <font>
+              <pointsize>16</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>UID</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="value_uid">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="frame_status">
+        <item>
+         <widget class="QLabel" name="status_internet">
+          <property name="text">
+           <string>Gate : Connected</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="status_gate">
+          <property name="text">
+           <string>Status : Online</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="status_cctv">
+          <property name="text">
+           <string>CCTV : Connected</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="status_rfid">
+          <property name="text">
+           <string>RFID : Connected</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuMenu">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <addaction name="navigateSettings"/>
+    <addaction name="navigateRegister"/>
+   </widget>
+   <addaction name="menuMenu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="navigateSettings">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="navigateRegister">
+   <property name="text">
+    <string>Register</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,11 +1,9 @@
 import mysql.connector
 from datetime import datetime,timedelta
 import json
-from services import authentication
-
+from authentication import AESCipher
 
 import datetime;
-
 
 key1 = "MayoraInvesta@2022"
 key2 = "TuhasAkhirISTTS@2022"
@@ -101,10 +99,10 @@ class databases:
     query = "INSERT INTO card (UID,keyA,saldo,username,email,phone) values(%s,%s,%s,%s,%s,%s)"
     value = (uid,key,saldo,username,email,phone)
    
-    if self.isUserExist(username) == True or self.isUidExist(authentication.AESCipher(key2).encrypt(uid)) == True:
+    if self.isUserExist(username) == True or self.isUidExist(AESCipher(key2).encrypt(uid)) == True:
       return False
     else:
-      value = (authentication.AESCipher(key2).encrypt(uid),authentication.AESCipher(str(saldo)).encrypt(key),saldo,username,email,phone)
+      value = (AESCipher(key2).encrypt(uid),AESCipher(str(saldo)).encrypt(key),saldo,username,email,phone)
       self.executeQuery(query,value)
       self.fetchData()
       self.commit()
@@ -186,12 +184,11 @@ if __name__ == "__main__":
  
   db = databases('localhost','root','root','tambangku')
   db.connectDatabase()
-  index_test = 1
+  index_test = 0
   data_test = "text" + str(index_test)
 
   db.register(data_test,data_test,index_test,data_test,data_test,data_test)
-  print('terdaftar')
-  # result = db.getUserByUid(authentication.AESCipher(key2).encrypt(data_test))
+  # result = db.getUserByUid(AESCipher(key2).encrypt(data_test))
   # print(result)
 
   # print(db.getPlateLatestTime())

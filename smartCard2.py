@@ -7,8 +7,15 @@ debug = False
 
 
 
+
+
 ##list of basic command
 sReaderFirmware = [0xff,0x71,0x00,0x00,0x00]
+BLOCK_NUMBER = 0x00 #default
+LOADKEY_A = [0xFF, 0x82, 0x00, 0x00, 0x06]
+GET_UID = [0xFF,0xCA,0x00,0x00,0x04]
+WRITE_16_BYTES = [0xFF, 0xD6, 0x00, BLOCK_NUMBER, 0x10]
+FORBIDDEN_BLOCKS = [0,3,7,11,15,19,23,27,31,35,39,43,47,51,55,59,63] 
 authA = [0x00,0x00,0x00,0x00,0x00,0x00]
 authB = [0xff,0xff,0xff,0xff,0xff,0xff]
 
@@ -290,23 +297,28 @@ def DetectReader():
     return readerobserver.getReader()
 
 if __name__ == "__main__":
-    sReaderFirmware = [0xff,0x71,0x00,0x00,0x00]
-    authA = [0x00,0x00,0x00,0x00,0x00,0x00]
-    authB = [0xff,0xff,0xff,0xff,0xff,0xff]
-    wallet_auth = [0xff,0xff,0x00,0x00,0xc3,0x50]
+    # sReaderFirmware = [0xff,0x71,0x00,0x00,0x00]
+    # authA = [0x00,0x00,0x00,0x00,0x00,0x00]
+    # authB = [0xff,0xff,0xff,0xff,0xff,0xff]
+    # wallet_auth = [0xff,0xff,0x00,0x00,0xc3,0x50]
 
-    block = 0
+    # block = 0
 
     test_smartcard = smartCard()
     test_smartcard.connect()
-    test_smartcard.isNewCard()
+    # while 1:
+    #     if test_smartcard.isNewCard() :
+    #         print('kartu baru')
 
-    test_smartcard.setTempAuth(1,authB)
-    test_smartcard.setWalletSector(50000,SECTOR[11])
-    # block,key = test_smartcard.getValueBlockFormat(50000,SECTOR[11]+1)
-    test_smartcard.decrement(SECTOR[11],81,authB,1)
-    print(test_smartcard.readBlock(SECTOR[11],16,1))
-    print(test_smartcard.readBlock(SECTOR[11]+1,16,1))
+    #     sleep(1)  
+        
+
+    # test_smartcard.setTempAuth(1,authB)
+    # test_smartcard.setWalletSector(50000,SECTOR[11])
+    # # block,key = test_smartcard.getValueBlockFormat(50000,SECTOR[11]+1)
+    # test_smartcard.decrement(SECTOR[11],81,authB,1)
+    # print(test_smartcard.readBlock(SECTOR[11],16,1))
+    # print(test_smartcard.readBlock(SECTOR[11]+1,16,1))
     # print(test_smartcard.readBlock(SECTOR[11]+2,16,1))
     # print(test_smartcard.readBlock(SECTOR[11]+3,16,1))
     # print(valid)
