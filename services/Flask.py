@@ -1,8 +1,7 @@
 import flask
 from flask import  request,jsonify,Response
-from services.database import databases
+from database import databases
 from time import sleep
-from smartCard2 import smartCard
 from flask_cors import CORS,cross_origin
 from smartcard.util import *
 
@@ -37,28 +36,19 @@ def hello_world():
 def register():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
-        smartCardControl = smartCard()
-        smartCardControl.connect()
         username = request.json['username']
         email = request.json['email']
         phone = request.json['phone']
         saldo = request.json['saldo']
-        if smartCardControl.isNewCard():
-            uid = smartCardControl.readCard()
-            block,key =  smartCardControl.getValueBlockFormat(int(saldo),11*4+1)
-            key = toHexString(key)
+        uid = request.json['uid']
+        key = request.json['key']
+        result = db.register(uid,key,int(saldo),username,email,phone)
 
-            # smartCardControl.setWalletSector(int(saldo),10)
-
-            result = db.register(uid,key,int(saldo),username,email,phone)
-            print(result)
-            if   result == False:
-                return jsonify({"Message":"Username / UID sudah terdaftar"}),302
-            else:
-                return jsonify({"Message":"Data Added"}),202
+        if   result == False:
+            return jsonify({"Message":"Username / UID sudah terdaftar"}),302
         else:
+            return jsonify({"Message":"Data Added"}),202
             
-            return jsonify({"Message":"RFID Tag Tidak Terdeteksi"}),201
 
 @app.route("/api/card/page", methods=["GET"])
 def cardByPage():
@@ -82,7 +72,9 @@ def getUserByUid():
     if (content_type == 'application/json'):
         uidChiper = request.json['uid']
         result = db.getUserByUid(uidChiper)
-        return jsonify(result)
+        if len(result) > 0 : return jsonify(result[0])
+        else : return jsonify({"Message":"Data Not Found"}),302
+        
 
 @app.route("/api/price/get", methods=["get"])
 def getDevicePrice():

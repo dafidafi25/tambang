@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TambahSaldo</class>
+ <widget class="QMainWindow" name="TambahSaldo">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>200</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Tambah Saldo</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="layou_curr_saldo" stretch="5,1,12">
+      <item>
+       <widget class="QLabel" name="label_curr_saldo">
+        <property name="text">
+         <string>Saldo Sekarang</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="separator_2">
+        <property name="text">
+         <string>:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="value_curr_saldo">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layout_add_saldo" stretch="5,1,12">
+      <item>
+       <widget class="QLabel" name="label_add_saldo">
+        <property name="text">
+         <string>Tambah Saldo</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="separator">
+        <property name="text">
+         <string>:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="value_add_saldo">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layout_sum" stretch="5,1,12">
+      <item>
+       <widget class="QLabel" name="label_sum">
+        <property name="text">
+         <string>Total</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="separator_3">
+        <property name="text">
+         <string>:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="value_sum">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layout_btn">
+      <item>
+       <widget class="QPushButton" name="btn_scan">
+        <property name="text">
+         <string>Scan</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_confirm">
+        <property name="text">
+         <string>Confirm</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

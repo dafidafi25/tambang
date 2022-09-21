@@ -1,7 +1,7 @@
 from ISAPI import isapiClient,response_parser,dateTimeConvert
 from time import sleep
 from smartCard2 import DetectReader,smartCard
-from gateMX50 import gateProcess
+from services.gateMX50 import gateProcess
 from mySql import updateTable
 
 deviceConnected = False

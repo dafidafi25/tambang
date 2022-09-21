@@ -76,7 +76,7 @@ class databases:
   
   def isUidExist(self,uid):
       query = "SELECT * from card WHERE uid LIKE %s"
-      self.executeQuery(query,(uid,))
+      self.executeQuery(query,(AESCipher(key2).encrypt(uid),))
       row = self.fetchData()
 
       if len(row) > 0:
@@ -86,12 +86,16 @@ class databases:
 
   def getUserByUid(self,uid):
       query = "SELECT * from card WHERE UID = %s"
-      self.executeQuery(query,(uid,))
+      self.executeQuery(query,(AESCipher(key2).encrypt(uid),))
       row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
       data = self.fetchData()
       json_data = []
       for result in data:
         json_data.append(dict(zip(row_headers,result)))
+      if len(json_data) > 0:
+        json_data[0]['UID'] = AESCipher(key2).decrypt(json_data[0]['UID']).decode("utf-8")
+        json_data[0]['saldo'] = AESCipher(key1).decrypt(json_data[0]['saldo']).decode("utf-8")
+        json_data[0]['keyA'] = AESCipher(json_data[0]['saldo']).decrypt(json_data[0]['keyA'])
       return json_data
 
 
@@ -102,7 +106,7 @@ class databases:
     if self.isUserExist(username) == True or self.isUidExist(AESCipher(key2).encrypt(uid)) == True:
       return False
     else:
-      value = (AESCipher(key2).encrypt(uid),AESCipher(str(saldo)).encrypt(key),saldo,username,email,phone)
+      value = (AESCipher(key2).encrypt(uid),AESCipher(str(saldo)).encrypt(key),AESCipher(key1).encrypt(str(saldo)),username,email,phone)
       self.executeQuery(query,value)
       self.fetchData()
       self.commit()
@@ -110,11 +114,11 @@ class databases:
   
   def updateSaldo(self,key_access,uid,newSaldo):
     query = "UPDATE card SET keyA= %s ,saldo = %s WHERE UID = %s"
-    val = (key_access,newSaldo,uid)
+    val = (AESCipher(str(key_access)).encrypt(newSaldo),newSaldo,uid)
     self.executeQuery(query,val)
     test = self.fetchData()
     self.commit()
-    print(test)
+    
     return True
 
 
@@ -187,7 +191,7 @@ if __name__ == "__main__":
   index_test = 0
   data_test = "text" + str(index_test)
 
-  db.register(data_test,data_test,index_test,data_test,data_test,data_test)
+  db.register('',data_test,index_test,data_test,data_test,data_test)
   # result = db.getUserByUid(AESCipher(key2).encrypt(data_test))
   # print(result)
 

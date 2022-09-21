@@ -5,10 +5,6 @@ from smartcard.ReaderMonitoring import ReaderMonitor, ReaderObserver
 from smartcard.util import *
 debug = False
 
-
-
-
-
 ##list of basic command
 sReaderFirmware = [0xff,0x71,0x00,0x00,0x00]
 BLOCK_NUMBER = 0x00 #default
