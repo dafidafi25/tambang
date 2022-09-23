@@ -74,9 +74,6 @@ class DialogRegister(QDialog):
     def __close_gate(self):
         pass
     
-    def closeEvent(self, event):
-        self.ui.rfid_service.read_mode = 1
-
     def start(self):
         self.exec_()
 

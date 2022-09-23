@@ -133,6 +133,44 @@ class databases:
     for result in data:
       json_data.append(dict(zip(row_headers,result)))
     return json_data
+    
+  def getGateStatus(self):
+    query = "SELECT * from gate"
+
+    self.executeQuery(query)
+    row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
+    data = self.fetchData()
+    json_data=[]
+
+    for result in data:
+      json_data.append(dict(zip(row_headers,result)))
+    return json_data
+  
+  def setGate(self, gate, id):
+    query = ("UPDATE gate \
+              SET gate = %s \
+              WHERE id = %s ")
+    value = (gate,id)
+    result =  self.executeQuery(query,value)
+    self.commit()
+    return result
+
+  def setGateStatus(self, gate, id):
+    query = ("UPDATE gate \
+              SET gate_status = %s \
+              WHERE id = %s ")
+    value = (gate,id)
+    result =  self.executeQuery(query,value)
+    self.commit()
+    return result
+  
+  def setPrice(self,price,id):
+    query = ("UPDATE gate \
+              SET price = %s \
+              WHERE id = %s ")
+    value = (price,id)
+    self.executeQuery(query,value)
+    self.commit()
   
   def getDevicePrice(self):
       query = "SELECT * FROM gate"

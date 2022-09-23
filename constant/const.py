@@ -7,3 +7,5 @@ HIKVISION_PORT = "80"
 HIKVISION_HOST = f'http://{HIKVISION_IP}:{HIKVISION_PORT}'
 HIKVISION_ID = 'admin'
 HIKVISION_PASSWORD = '-arngnennscfrer2'
+
+BASE_URL = "http://127.0.0.1:6000/api"

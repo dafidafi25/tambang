@@ -85,6 +85,7 @@ class SmartCardThread(QThread):
     def run(self):
         while(1):
             if not self.isConnect():
+                
                 self.connect_signal.emit(False)
             else:    
                 self.connect_signal.emit(True)

@@ -2,7 +2,7 @@ from PySide2.QtWidgets import QDialog
 from view.AddForm import Ui_Dialog
 
 class DialogAddSaldo(QDialog):
-    def __init__(self,rfid_service):
+    def __init__(self, rfid_service):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
@@ -19,9 +19,6 @@ class DialogAddSaldo(QDialog):
 
     def __close_gate(self):
         pass
-    
-    def closeEvent(self, event):
-        self.ui.rfid_service.read_mode = 1
 
     def start(self):
         self.exec_()

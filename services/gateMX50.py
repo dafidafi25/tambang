@@ -16,10 +16,10 @@ STOP_GATE = 0x01
 FIXED_DATA = 0x00
 
 class gate:
-    def __init__(self,GATE_ADDRESS,BAUD_RATE,USB_PORT,debug = False):
+    def __init__(self,GATE_ADDRESS,BAUD_RATE,debug = False):
         self.GATE_ADDRESS = GATE_ADDRESS
         self.BAUD_RATE = BAUD_RATE
-        self.USB_PORT = USB_PORT
+        self.USB_PORT = None
         self.debug = debug
         self.serial = False
     

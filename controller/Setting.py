@@ -2,12 +2,11 @@ from PySide2.QtWidgets import QDialog
 from view.SettingsForm import Ui_Dialog
 
 class DialogSetting(QDialog):
-    def __init__(self, service_gate, rfid_service):
+    def __init__(self, service_gate):
         super().__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         self.__service_gate = service_gate
-        self.ui.rfid_service = rfid_service
 
         self.__initialize_button()
     
@@ -21,9 +20,6 @@ class DialogSetting(QDialog):
     def __open_gate(self):
         self.__service_gate.openGate()
         pass
-    
-    def closeEvent(self, event):
-        self.ui.rfid_service.read_mode = 1
 
     def __close_gate(self):
         self.__service_gate.closeGate()
