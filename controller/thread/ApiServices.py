@@ -52,26 +52,25 @@ class ApiServices(QThread):
     def closeGate(self):
         myobj = {'gate': 0, 'id':1}
         requests.post(f'{self.base_url}/gate/set/gate', json=myobj)
-
-
     
-    # def run(self):
-    #     while(True):
-    #         if self.__gate_services.serial_ports():
-                
-    #             if not self.__is_connected:
-    #                 try:
-    #                     self.__gate_services.connectGate()
-    #                     self.__is_connected = True
-                        
-    #                 except Exception as err:
-    #                     print(err)
-    #             else:
-    #                 self.connect_signal.emit(True)
+    def getPrice(self):
+        pass
 
-    #         else:
-    #             self.reset()
-                
-    #             self.connect_signal.emit(False)
+    def setPrice(self, newPrice):
+        myObj = {
+            'new_price': newPrice,
+            "id": 1
+        }
+        response = requests.post(f'{self.base_url}/gate/set/gate_status', json=myObj).json()
+        return response
 
-    #         sleep(0.5)
+    def tansaction(self, uid, newSaldo):
+        pass
+
+    def setSaldo(self, uid, newSaldo):
+        pass
+
+    def getCardSaldo(self, uid):
+        pass
+
+

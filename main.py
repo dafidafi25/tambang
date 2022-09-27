@@ -9,9 +9,7 @@ from controller.Dashboard import DashboardController
 class Main():
     def __init__(self):
         super().__init__()
-        print("Masok")
         self.ui = DashboardController()
-        print("Masok")
 
     def start(self):
         self.ui.start()

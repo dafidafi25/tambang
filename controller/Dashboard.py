@@ -1,3 +1,5 @@
+import json
+from os import stat
 from controller.thread.ApiServices import ApiServices
 from view.Dashboard import Ui_Dashboard
 from PySide2.QtWidgets import QMainWindow
@@ -9,10 +11,14 @@ from PySide2 import QtCore
 from .thread.GateThread import GateThread
 from .thread.HikvisionThread import HikvisionThread
 from .thread.SmartCardThread import SmartCardThread
+from .thread.websocket  import WebsocketThread
 
 from .AddMenu import DialogAddSaldo
 from .RegisterMenu import DialogRegister
 from .Setting import DialogSetting
+
+from PySide2 import QtCore, QtWebSockets, QtNetwork, QtGui
+from PySide2.QtCore import QUrl
 
 import cv2
 import numpy as np
@@ -32,6 +38,15 @@ class DashboardController(QMainWindow):
 
         self.ui.value_camera.setPixmap(grey)
 
+        #web socket#
+        self.client =  QtWebSockets.QWebSocket("",QtWebSockets.QWebSocketProtocol.Version13,None)
+        self.client.error.connect(self.onError)
+        self.client.open(QUrl("ws://10.13.2.106:6000/gate"))
+        self.client.connected.connect(self.onConnect)
+        self.client.textMessageReceived.connect(self.onMessageReceived)
+        self.client.disconnected.connect(self.onDisconnect)
+        
+
         ## Register Thread
         self.gate_thread = GateThread(GATE_ADDRESS, GATE_BAUD_RATE)
         self.gate_thread.connect_signal.connect(self.__gate_status)
@@ -45,6 +60,10 @@ class DashboardController(QMainWindow):
         self.hikvision_thread = HikvisionThread()
         self.hikvision_thread.hikvision_signal.connect(self.__hikvision_status)
         self.hikvision_thread.start()
+
+        self.websocket_thread = WebsocketThread()
+        self.websocket_thread.reconnect_signal.connect(self.webSocketSignal)
+        self.websocket_thread.start()
 
         self.api_services = ApiServices()
 
@@ -68,6 +87,38 @@ class DashboardController(QMainWindow):
         self.ui.navigateAddSaldo.triggered.connect(self.__open_dialog_add_saldo)
         self.ui.navigateRegister.triggered.connect(self.__open_dialog_register)
         self.ui.navigateSettings.triggered.connect(self.__open_dialog_settings)
+    
+    def webSocketSignal(self):
+        print("Web Socket Reconnecting ....")
+        self.client.open(QUrl("ws://10.13.2.106:6000/gate"))
+    
+    def onConnect(self):
+        print("Web Socket Connected")
+        try:
+            self.websocket_thread.reconnect_status = 0
+        except Exception as err:
+            print(err)
+
+    def onDisconnect(self):
+        print("Web Socket Disconnected")
+        self.websocket_thread.reconnect_status = 1
+
+
+    def onError(self, msg):
+        print(msg)
+    
+    def onPong(self, elapsedTime, payload):
+        print("onPong - time: {} ; payload: {}".format(elapsedTime, payload))
+    
+    def onMessageReceived(self,data):
+        data = json.loads(data)
+        if data['gate'] == 1 and self.gate_thread.gate_status != 1 : 
+            self.gate_thread.gate_status = 1
+            self.gate_thread.openGate()
+        elif data['gate'] == 0 and self.gate_thread.gate_status != 0 : 
+            self.gate_thread.gate_status = 0
+            self.gate_thread.closeGate()
+        pass
 
     def __open_dialog_add_saldo(self):
         self.rfid_thread.read_mode = 0
@@ -127,6 +178,7 @@ class DashboardController(QMainWindow):
         pass
 
     def __gate_status(self,isConnected):
+        self.client.sendTextMessage('{"gate": "Sending Gate Status Request"}')
         if isConnected: self.ui.status_gate.setText("GATE : Connected")
         else : self.ui.status_gate.setText("GATE : Disconnected")
         pass

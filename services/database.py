@@ -1,3 +1,5 @@
+from asyncio import constants
+from time import sleep
 import mysql.connector
 from datetime import datetime,timedelta
 import json
@@ -10,6 +12,7 @@ key2 = "TuhasAkhirISTTS@2022"
 
 class databases:
   def __init__(self,host,user,password,database):
+    
     self.host = host
     self.user = user
     self.password = password
@@ -24,74 +27,57 @@ class databases:
     password=self.password,
     database=self.database
     )
-    self.mycursor = self.mydb.cursor()
+    self.mycursor = self.mydb.cursor(buffered=True)
 
   def executeQuery(self,query,val = None):
     # print(query)
-    try:
-      assert val != None
-    except AssertionError:
-      try:
-        self.mycursor.execute(query)
-      except mysql.connector.Error as err:
-        print(err)
+    if type(val) == tuple:
+      self.mycursor.executemany(query,val)
+    elif val != None:
+      self.mycursor.execute(query,val)
     else:
-      try:
-        assert type(val) == tuple
-      except AssertionError:
-        self.mycursor.executemany(query,val)
-      except mysql.connector.errors as err:
-        print(err)
-
-      else:
-        self.mycursor.execute(query,val)
+      self.mycursor.execute(query)
     
   def fetchData(self):
     self.myresult = self.mycursor.fetchall()
     return self.myresult
-  
-  def insertDataPlate(self,value):
-    query = "insert into hikvision (hikvision_plat,hikvision_time) values(%s,%s)"
-    # value = ("w1234df", value)
-    self.executeQuery(query,value)
-    self.commit(self)
-  
-  def getPlateLatestTime(self):
-    query = "Select hikvision_time from hikvision order by hikvision_time desc limit 1"
-    self.executeQuery(query)
-    data = self.fetchData()
-    data = data[0][0] if len(data) > 0 else None
-    return data
-  
+
   def isUserExist(self,username):
+    self.mycursor = self.mydb.cursor(buffered=True)
     query = "SELECT * from card WHERE username LIKE %s"
     self.executeQuery(query,(username,))
 
     row = self.fetchData()
 
+    self.mycursor.close()
     if len(row) >0:
       return True
     else:
       return False
   
   def isUidExist(self,uid):
+      self.mycursor = self.mydb.cursor(buffered=True)
       query = "SELECT * from card WHERE uid LIKE %s"
       self.executeQuery(query,(AESCipher(key2).encrypt(uid),))
       row = self.fetchData()
-
+      self.mycursor.close()
       if len(row) > 0:
         return True
       else:
         return False
 
   def getUserByUid(self,uid):
+      self.mycursor = self.mydb.cursor(buffered=True)
       query = "SELECT * from card WHERE UID = %s"
       self.executeQuery(query,(AESCipher(key2).encrypt(uid),))
       row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
       data = self.fetchData()
       json_data = []
+
+      self.mycursor.close()
       for result in data:
         json_data.append(dict(zip(row_headers,result)))
+
       if len(json_data) > 0:
         json_data[0]['UID'] = AESCipher(key2).decrypt(json_data[0]['UID']).decode("utf-8")
         json_data[0]['saldo'] = AESCipher(key1).decrypt(json_data[0]['saldo']).decode("utf-8")
@@ -100,90 +86,107 @@ class databases:
 
 
   def register(self,uid,key,saldo,username,email,phone):
+    self.mycursor = self.mydb.cursor(buffered=True)
     query = "INSERT INTO card (UID,keyA,saldo,username,email,phone) values(%s,%s,%s,%s,%s,%s)"
     value = (uid,key,saldo,username,email,phone)
    
     if self.isUserExist(username) == True or self.isUidExist(AESCipher(key2).encrypt(uid)) == True:
+      self.mycursor.close()
       return False
     else:
       value = (AESCipher(key2).encrypt(uid),AESCipher(str(saldo)).encrypt(key),AESCipher(key1).encrypt(str(saldo)),username,email,phone)
       self.executeQuery(query,value)
       self.fetchData()
       self.commit()
+      self.mycursor.close()
       return True
   
   def updateSaldo(self,key_access,uid,newSaldo):
+    self.mycursor = self.mydb.cursor(buffered=True)
     query = "UPDATE card SET keyA= %s ,saldo = %s WHERE UID = %s"
     val = (AESCipher(str(key_access)).encrypt(newSaldo),newSaldo,uid)
     self.executeQuery(query,val)
     test = self.fetchData()
     self.commit()
-    
+    self.mycursor.close()
     return True
 
 
   def getUserPage(self,page,per_page):
+    self.mycursor = self.mydb.cursor(buffered=True)
     query = "SELECT * from card"
 
     self.executeQuery(query)
     row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
     data = self.fetchData()
     json_data=[]
-
+    self.mycursor.close()
     for result in data:
       json_data.append(dict(zip(row_headers,result)))
     return json_data
     
   def getGateStatus(self):
-    query = "SELECT * from gate"
-
-    self.executeQuery(query)
-    row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
-    data = self.fetchData()
-    json_data=[]
-
-    for result in data:
-      json_data.append(dict(zip(row_headers,result)))
-    return json_data
-  
+    query = "SELECT * from gate where id = 1"
+    gate_cursor = self.mydb.cursor(buffered=True)
+    gate_cursor.execute(query)
+    if len(gate_cursor.description) >  0 :
+      row_headers=[x[0] for x in gate_cursor.description] #this will extract row headers
+      data = gate_cursor.fetchone()
+      data_arr = []
+      data_arr.append(data)
+      gate_cursor.close()
+      if data is not None:
+        json_data=[]
+        for result in data_arr:
+          json_data.append(dict(zip(row_headers,result)))
+        return json_data
+      else:
+        return[]
+        
+    else:
+      gate_cursor.close()
+      return []
   def setGate(self, gate, id):
+    set_gate_cursor = self.mydb.cursor(buffered=True)
+    print(f'Gate : {gate} with id : {id}')
     query = ("UPDATE gate \
               SET gate = %s \
               WHERE id = %s ")
     value = (gate,id)
-    result =  self.executeQuery(query,value)
-    self.commit()
-    return result
+  
+    try:
+      set_gate_cursor.execute(query,value)
+      self.mydb.commit()
+    except Exception as err:
+      print(err)
+    finally:
+      sleep(0.5)
+      set_gate_cursor.close()
+      return True 
 
   def setGateStatus(self, gate, id):
+    self.mycursor = self.mydb.cursor(buffered=True)
     query = ("UPDATE gate \
               SET gate_status = %s \
               WHERE id = %s ")
-    value = (gate,id)
+    value = (gate,id,)
     result =  self.executeQuery(query,value)
     self.commit()
+    self.mycursor.close()
     return result
   
   def setPrice(self,price,id):
+    self.mycursor = self.mydb.cursor(buffered=True)
     query = ("UPDATE gate \
               SET price = %s \
               WHERE id = %s ")
     value = (price,id)
     self.executeQuery(query,value)
     self.commit()
-  
-  def getDevicePrice(self):
-      query = "SELECT * FROM gate"
-      self.executeQuery(query)
-      row_headers=[x[0] for x in self.mycursor.description] #this will extract row headers
-      data = self.fetchData()
-      json_data=[]
-      for result in data:
-        json_data.append(dict(zip(row_headers,result)))
-      return json_data
-
+    self.mycursor.close()
 
   def insertDataTransaksi(self,card_id,plate_number,status,price):
+    self.mycursor = self.mydb.cursor(buffered=True)
     created_at = datetime.datetime.now()
     query = "insert into transaksi (created_at,card_id,plate_number,status,price) values(%s,%s,%s,%s,%s)"
     value = (str(created_at)[0:19],card_id,plate_number,status,price)
@@ -199,20 +202,9 @@ class databases:
     json_data=[]
     for result in data:
       json_data.append(dict(zip(row_headers,result)))
-    return json_data
-
-  def mergeLicenseTable(self,value_id,value_time):
-    query = ("UPDATE hikvision \
-              SET transaksi_id = %s \
-              WHERE transaksi_id IS NULL \
-              AND hikvision_time BETWEEN %s AND %s")
-    value_time1 = value_time - timedelta(minutes = 3)
-    value_time2 = value_time + timedelta(minutes = 1)
-    value = (value_id,value_time1,value_time2)
-    print(value)
-    self.executeQuery(query,value)
-    self.commit()
     
+    self.mycursor.close()
+    return json_data
 
   def commit(self,id=None):
     self.mydb.commit()

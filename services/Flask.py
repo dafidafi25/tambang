@@ -38,36 +38,34 @@ def echo(sock):
     while True:
         data = sock.receive()
         if "img" in data:
-            full_url = urljoin('http://'+'192.168.2.64' + ':'+ '80', '/ISAPI/System/status')
-            session = requests.session()
-            session.auth = HTTPBasicAuth('admin', '-arngnennscfrer2')
             try:
-                response = session.get(full_url)
-                if response.status_code == 401:
-                    session.auth = HTTPDigestAuth('admin', '-arngnennscfrer2')
-                    response = session.get(full_url)
-                response.raise_for_status()
-            except requests.exceptions.RequestException as e:
+                imgBase64 = requests.get(f'http://admin:-arngnennscfrer2@192.168.2.64/Streaming/channels/1/picture', auth=HTTPDigestAuth("admin", "-arngnennscfrer2")).content
+                base64_bytes = base64.b64encode(imgBase64).decode("utf-8")
+                sock.send(base64_bytes)
+            except Exception as e:
                 print(e)
                 sock.send({"message": "Not Authenticated"})
-            else:
-                response = session.request( method='get', url= 'http://'+'192.168.2.64' + ':'+ '80' + "/ISAPI/Streaming/channels/1/picture?videoResolutionWidth=640&videoResolutionHeight=480", timeout=3, stream=True).content
-                base64_bytes = base64.b64encode(response).decode("utf-8")
-                sock.send(base64_bytes)
+                
 
 @sock.route('/gate')
 def gate_ws(sock):
     while True:
         data = sock.receive()
-        data = json.loads(data)
-        if "gate" in data:
-            result = db.getGateStatus()
-            sock.send(result[0])
-        elif "set_gate" in data:
-            data = data['set_gate']
-            print(data)
-            if data is 1 : db.setGate(1,1)
-            if data is 0 : db.setGate(0,1)
+        try:
+            if "gate" in data:
+                result = db.getGateStatus()
+                if(len(result) > 0 ):
+                    result = result[0]
+                
+                    result_object = json.dumps(result, indent = 4)
+                    sock.send(result_object)
+            elif "set_gate" in data:
+                print("Gate Set")
+                data = data['set_gate']
+                if data is 1 : db.setGate(1,1)
+                if data is 0 : db.setGate(0,1)
+        except Exception as err:
+            print(err)
 
 @app.route("/")
 def hello_world():
@@ -114,12 +112,6 @@ def getUserByUid():
         result = db.getUserByUid(uidChiper)
         if len(result) > 0 : return jsonify(result[0])
         else : return jsonify({"Message":"Data Not Found"}),302
-        
-
-@app.route("/api/price/get", methods=["get"])
-def getDevicePrice():
-    result = db.getDevicePrice()
-    return jsonify(result)
 
 @app.route("/api/transaction", methods=["POST"])
 def insertTransaction():
@@ -153,14 +145,27 @@ def getGateStatus():
     if len(result) > 0 : return jsonify(result[0])
     else : return jsonify({"Message":"Data Not Found"}),302
 
-@app.route("/api/gate/set/gate", methods=["POST"])
-def setGate():
-    content_type = request.headers.get('Content-Type')
-    if (content_type == 'application/json'):
-        gate = request.json['gate']
+@app.route("/api/gate/open", methods=["get"])
+def setGateOpen():
+    print("Request Open")
+    try:
         id = 1
-        result = db.setGate(gate, id)
-        return jsonify(result)
+        db.setGate(1, id)
+        return jsonify({'message': "data Accepted"})
+    except:
+        return jsonify({'Message': "Something Went Wrong"})
+
+
+@app.route("/api/gate/close", methods=["get"])
+def setGateClose():
+    print("Request Close")
+    try:
+        id = 1
+        db.setGate(0, id)
+        return jsonify({'message': "data Accepted"})
+    except:
+        return jsonify({'Message': "Something Went Wrong"})
+
 
 @app.route("/api/gate/set/gate_status", methods=["POST"])
 def setGateStatus():

@@ -1,26 +1,17 @@
-from __future__ import print_function
-import time
-import sib_api_v3_sdk
-from sib_api_v3_sdk.rest import ApiException
-from pprint import pprint
+import mailslurp_client
+# create a mailslurp configuration
+configuration = mailslurp_client.Configuration()
+configuration.api_key['x-api-key'] = '33fb2f48d350c49868e1526255bbffb6e0e12eca88ce940610734b66f5081fd'
+with mailslurp_client.ApiClient(configuration) as api_client:
+    # create an inbox
+    inbox_controller = mailslurp_client.InboxControllerApi(api_client)
+    inbox_1 = inbox_controller.create_inbox()
+    inbox_2 = inbox_controller.create_inbox()
 
-
-def sendEmail():
-    configuration = sib_api_v3_sdk.Configuration()
-    configuration.api_key['api-key'] = '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'
-
-    api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
-    subject = "Gerbang"
-    html_content = "<html><body><h1>Gerbang Bermasalah</h1></body></html>"
-    sender = {"name":"dafi","email":"dafidafi25@gmail.com"}
-    to = [{"email":"dafisteam25@gmail.com","name":"dafi"}]
-    reply_to = {"email":"replyto@domain.com","name":"John Doe"}
-    headers = {"Some-Custom-Name":"unique-id-1234"}
-    params = {"parameter":"Gerbang bermasalah","subject":"gerbang"}
-    send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(to=to,params=params, reply_to=reply_to, headers=headers, html_content=html_content, sender=sender, subject=subject)
-
-    try:
-        api_response = api_instance.send_transac_email(send_smtp_email)
-        pprint(api_response)
-    except ApiException as e:
-        print("Exception when calling SMTPApi->send_transac_email: %s\n" % e)
+    # send email
+    opts = mailslurp_client.SendEmailOptions()
+    opts.to = 'dafidafi25@gmail.com'
+    opts.subject = "Hello"
+    opts.body = "Email content <strong>supports HTML</strong>"
+    opts.is_html = True
+    inbox_controller.send_email(inbox_1.id, send_email_options=opts)

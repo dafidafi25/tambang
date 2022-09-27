@@ -6,6 +6,13 @@ from controller.thread.ApiServices import ApiServices
 from services.gateMX50 import gate
 from serial import SerialException
 
+from PySide2 import QtCore, QtWebSockets, QtNetwork, QtGui
+from PySide2.QtWidgets import QApplication, QMainWindow, QMenu, QAction
+from PySide2.QtCore import QUrl
+
+import asyncio
+import websockets
+
 class GateThread(QThread):
     connect_signal = Signal(bool)
     def __init__(self,GATE_ADDRESS,BAUD_RATE):
@@ -14,9 +21,12 @@ class GateThread(QThread):
         self.BAUD_RATE = BAUD_RATE
         self.USB_PORT = None
         self.__gate_services =  gate(self.GATE_ADDRESS,self.BAUD_RATE)
-        self.apiServices = ApiServices()
-        
+        self.apiServices = ApiServices()     
         self.__is_connected = False
+        self.gate_status = 0
+
+
+    
     def openGate(self):
         self.__gate_services.openGate()
     
@@ -27,6 +37,7 @@ class GateThread(QThread):
         self.__is_connected = False
     
     def run(self):
+        
         while(True):
             if self.__gate_services.serial_ports():
                 
@@ -39,11 +50,6 @@ class GateThread(QThread):
                         print(err)
                 else:
                     self.connect_signal.emit(True)
-                    data = self.apiServices.getGateStatus()
-                    if "gate" in data:
-                        print(f'Current Gate : {data}')
-                        if(data['gate'] == 1): self.openGate()
-                        else: self.closeGate()
 
             else:
                 self.reset()

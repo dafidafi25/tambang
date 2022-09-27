@@ -63,13 +63,6 @@ class gate:
         return response
     
     def serial_ports(self):
-        """ Lists serial port names
-
-            :raises EnvironmentError:
-                On unsupported or unknown platforms
-            :returns:
-                A list of the serial ports available on the system
-        """
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
@@ -91,20 +84,6 @@ class gate:
                 print(err)
                 return False
         return True
-
-    # @staticmethod
-    # def responseName(response):
-    #     switcher = {
-    #         Response.UNKNOWN: "Gerbang tidak menyentuh sensor limit",
-    #         Response.DOWN_CMD_RECEIVED: "Perintah tutup diterima",
-    #         Response.DOWN_LIMIT: "Gerbang tertutup",
-    #         Response.UP_CMD_RECEIVED: "Perintah buka diterima",
-    #         Response.UP_LIMIT: "Gerbang terbuka",
-    #         Response.STOP_CMD_RECEIVED: "Perintah berhenti diterima"
-    #     }
-
-
-        # return switcher.get(response,"No Response")
 
     @staticmethod 
     def verifyBits(cmd):
