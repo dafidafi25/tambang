@@ -20,6 +20,7 @@ class ApiServices(QThread):
         myobj = {'uid': tag}
 
         x = requests.post(f'{self.base_url}/get/user/uid', json = myobj)  
+        
 
         if x.status_code <= 199 and x.status_code >= 300: return {} 
         x = x.json()
@@ -46,28 +47,31 @@ class ApiServices(QThread):
         return response
     
     def openGate(self):
-        myobj = {'gate': 1, 'id':1}
-        requests.post(f'{self.base_url}/gate/set/gate', json=myobj)
+        requests.get(f'{self.base_url}/gate/open')
     
     def closeGate(self):
         myobj = {'gate': 0, 'id':1}
-        requests.post(f'{self.base_url}/gate/set/gate', json=myobj)
+        requests.get(f'{self.base_url}/gate/close')
     
     def getPrice(self):
         pass
 
     def setPrice(self, newPrice):
-        myObj = {
-            'new_price': newPrice,
-            "id": 1
-        }
-        response = requests.post(f'{self.base_url}/gate/set/gate_status', json=myObj).json()
-        return response
+        myobj = {'new_price': newPrice}
+        requests.post(f'{self.base_url}/price/set', json=myobj)
+        
+        pass
 
     def tansaction(self, uid, newSaldo):
         pass
 
-    def setSaldo(self, uid, newSaldo):
+    def addTransaction(self, id, price):
+        myobj = {'id': id, "price":price}
+        requests.post(f'{self.base_url}/transaction', json=myobj)
+
+    def setSaldo(self, price,uid):
+        myobj = {'saldo': price, "uid":uid}
+        requests.post(f'{self.base_url}/saldo', json=myobj)
         pass
 
     def getCardSaldo(self, uid):

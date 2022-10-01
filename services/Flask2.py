@@ -10,7 +10,6 @@ import base64
 import json
 from flask_sock import Sock
 
-
 CORS_ALLOW_ORIGIN="*,*"
 CORS_EXPOSE_HEADERS="*,*"
 CORS_ALLOW_HEADERS="content-type,*"
@@ -108,6 +107,75 @@ def setPrice():
         result = db.update_gate_price(new_price, 1)
         if result : return jsonify({"valid": True, "Message":"Price Updated"})
         else : return jsonify({"valid": False, "Message":"Price not Updated"})
-    
+
+
+### Get User
+@app.route("/api/user/get", methods=["get"])
+def getUser():
+    result = db.get_user_page()
+    if len(result) > 0 : return jsonify({"valid": True, "Message":"User Found", "users": result})
+    else : return jsonify({"valid": False, "Message":"User Not Found"})
+
+@app.route("/api/user/delete", methods=["post"])
+def deleteUser():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        id = request.json['id']
+        result = db.delete_user(id)
+        if result : return jsonify({"valid": True, "Message":"user deleted"})
+        else : return jsonify({"valid": False, "Message":"User not deleted"})
+
+#Register
+@app.route("/api/register",methods = ['POST']) 
+def register():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        username = request.json['username']
+        email = request.json['email']
+        phone = request.json['phone']
+        saldo = request.json['saldo']
+        uid = request.json['uid']
+        key = request.json['key']
+        result = db.create_user(uid,key,int(saldo),username,email,phone)
+
+        if   result == False:
+            return jsonify({"Message":"Username / UID sudah terdaftar"}),302
+        else:
+            return jsonify({"Message":"Data Added"}),202    
+
+@app.route("/api/get/user/uid", methods=["POST"])
+def getUserByUid():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        uidChiper = request.json['uid']
+        result = db.get_user_by_uid(uidChiper)
+        if "saldo" in result : 
+            return jsonify(result)
+        else : return jsonify({"Message":"Data Not Found"}),302
+
+
+@app.route("/api/saldo", methods=["POST"])
+def updateSaldo():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        saldo = request.json['saldo']
+        uid = request.json['uid']
+        result = db.update_saldo(uid,saldo)
+        return jsonify(result)
+
+@app.route("/api/transaksi/list", methods=["GET"])
+def getTransaksiList():
+    result = db.get_transaction_list()
+    return jsonify(result)
+
+@app.route("/api/transaction", methods=["POST"])
+def insertTransaction():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        id = request.json['id']
+        price = request.json['price']
+        result = db.create_transaction_log(id,"",1,price)
+        return jsonify(result)
+
 
 app.run(host="0.0.0.0",port=6000)

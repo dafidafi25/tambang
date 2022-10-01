@@ -2,6 +2,7 @@ import sys
 
 import datetime
 import MySQLdb as mdb
+from flask import jsonify
 from authentication import AESCipher
 
 key1 = "MayoraInvesta@2022"
@@ -19,12 +20,12 @@ GET_USER_AUTH = "SELECT * FROM user where username LIKE %s and password LIKE %s"
 CREATE_USER = "INSERT INTO card (UID,keyA,saldo,username,email,phone) values(%s,%s,%s,%s,%s,%s)"
 CREATE_TRANSACTION_LOG = "insert into transaksi (created_at,card_id,plate_number,status,price) values(%s,%s,%s,%s,%s)"
 
-UPDATE_SALDO = "UPDATE card SET keyA= %s ,saldo = %s WHERE UID = %s"
+UPDATE_SALDO = "UPDATE card SET saldo = %s WHERE UID = %s"
 UPDATE_GATE = "UPDATE gate SET gate = %s WHERE id = %s "
 UPDATE_GATE_STATUS = "UPDATE gate SET gate_status = %s WHERE id = %s"
 UPDATE_GATE_PRICE = "UPDATE gate SET price = %s WHERE id = %s"
 
-
+DELETE_CARD = "DELETE FROM card WHERE id LIKE "
 ### END OF LIST OF USED QUERY ###
 
 class Databases_2:
@@ -56,16 +57,20 @@ class Databases_2:
         json_data = []
         if con:
             cur = con.cursor()
-            cur.execute(GET_USER_BY_ID, (AESCipher(key2).encrypt(uid),))
+            cur.execute(GET_USER_BY_UID, (AESCipher(key2).encrypt(uid),))
             row_headers=[x[0] for x in cur.description]
             results = cur.fetchall()
+
 
             json_data = []
             for r in results:
                 json_data.append(dict(zip(row_headers,r)))
-            
+        
             cur.close()
-        if len(json_data) > 0 : return json_data[0]
+        if len(json_data) > 0 : 
+            json_data = json_data[0]
+            json_data['saldo'] = AESCipher(key1).decrypt(json_data['saldo']).decode("utf-8")
+            return json_data
         else : return []
     
     def get_user_page(self):
@@ -183,12 +188,12 @@ class Databases_2:
         return False
 
     
-    def update_saldo(self,key_access,uid,newSaldo):
+    def update_saldo(self,uid,newSaldo):
         try:
             con = mdb.connect(self.DB_HOST, self.DB_USER, self.DB_PASSWORD, self.DB_NAME)
             # insert some data
             cur = con.cursor()
-            value = (AESCipher(str(key_access)).encrypt(newSaldo),newSaldo,uid)
+            value = (AESCipher(str(key1)).encrypt(newSaldo),uid)
             cur.execute(UPDATE_SALDO,value)
 
             affected_table = cur.rowcount
@@ -273,6 +278,28 @@ class Databases_2:
         except Exception as err:
             print(err)
             return False
+
+    def delete_user(self,id):
+        try:
+            con = mdb.connect(self.DB_HOST, self.DB_USER, self.DB_PASSWORD, self.DB_NAME)
+            # insert some data
+            cur = con.cursor()
+            query = DELETE_CARD + str(id)
+            cur.execute(query)
+            con.commit()
+
+            cur.close()
+            return True
+        except mdb.Error as e:
+            print ('Time to Rollback..')
+            con.rollback()
+            print ("Error %d: %s" % (e.args[0], e.args[1]))
+            return False
+        except Exception as err:
+            print("error")
+            print(err)
+            return False
+
     
     
             

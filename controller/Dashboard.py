@@ -112,6 +112,7 @@ class DashboardController(QMainWindow):
     
     def onMessageReceived(self,data):
         data = json.loads(data)
+        self.ui.status_internet.setText(data['price'])
         if data['gate'] == 1 and self.gate_thread.gate_status != 1 : 
             self.gate_thread.gate_status = 1
             self.gate_thread.openGate()
@@ -143,17 +144,30 @@ class DashboardController(QMainWindow):
     
     def __card_signal(self,tag):
         data = self.api_services.getByUid(tag)
-        if len(data) == 0 : return
-        self.ui.value_nama.setText(data['username'])
-        self.ui.value_email.setText(data['email'])
-        self.ui.value_phone.setText(data['phone'])
-        self.ui.value_saldo.setText(data['saldo'])
+        price = self.ui.status_internet.text()
+        print(data)
+        if "saldo" not in data : return
+        
 
-        response = self.api_services.getImageCam()
-        image = np.asarray(bytearray(response), dtype="uint8")
-        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-        cvt_img = self.convert_cv_qt(image,640,480)
-        self.ui.value_camera.setPixmap(cvt_img)
+        if int(data['saldo']) >= int(price) and self.gate_thread.gate_status == 0:
+            self.api_services.openGate()
+            sisa = str(int(data['saldo']) - int(price))
+            self.ui.value_sisa_saldo.setText(sisa) 
+            self.ui.value_nama.setText(data['username'])
+            self.ui.value_email.setText(data['email'])
+            self.ui.value_phone.setText(data['phone'])
+            self.ui.value_saldo.setText(data['saldo'])
+            self.ui.value_biaya.setText(price)
+
+            response = self.api_services.getImageCam()
+            image = np.asarray(bytearray(response), dtype="uint8")
+            image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+            cvt_img = self.convert_cv_qt(image,640,480)
+            self.ui.value_camera.setPixmap(cvt_img)
+            self.api_services.setSaldo(sisa,data['UID'])
+            self.api_services.addTransaction(data['id'], price)
+
+
         # print(img)
         # ba = QtCore.QByteArray.fromBase64(img)
         # print(ba)
