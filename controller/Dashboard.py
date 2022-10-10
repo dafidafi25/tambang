@@ -38,32 +38,20 @@ class DashboardController(QMainWindow):
 
         self.ui.value_camera.setPixmap(grey)
 
-        #web socket#
-        self.client =  QtWebSockets.QWebSocket("",QtWebSockets.QWebSocketProtocol.Version13,None)
-        self.client.error.connect(self.onError)
-        self.client.open(QUrl("ws://10.13.2.106:6000/gate"))
-        self.client.connected.connect(self.onConnect)
-        self.client.textMessageReceived.connect(self.onMessageReceived)
-        self.client.disconnected.connect(self.onDisconnect)
-        
-
         ## Register Thread
         self.gate_thread = GateThread(GATE_ADDRESS, GATE_BAUD_RATE)
-        self.gate_thread.connect_signal.connect(self.__gate_status)
         self.gate_thread.start()
-
         self.rfid_thread = SmartCardThread()
-        self.rfid_thread.connect_signal.connect(self.__smart_card_status)
-        self.rfid_thread.card_signal.connect(self.__card_signal)
         self.rfid_thread.start()
-
         self.hikvision_thread = HikvisionThread()
-        self.hikvision_thread.hikvision_signal.connect(self.__hikvision_status)
         self.hikvision_thread.start()
-
         self.websocket_thread = WebsocketThread()
-        self.websocket_thread.reconnect_signal.connect(self.webSocketSignal)
         self.websocket_thread.start()
+
+        self.gate_thread.connect_signal.connect(self.__gate_status)
+        
+        self.hikvision_thread.hikvision_signal.connect(self.__hikvision_status)   
+        self.websocket_thread.reconnect_signal.connect(self.webSocketSignal)
 
         self.api_services = ApiServices()
 
@@ -74,7 +62,13 @@ class DashboardController(QMainWindow):
         cvt_img = self.convert_cv_qt(image,640,480)
         self.ui.value_camera.setPixmap(cvt_img)
 
-        # self.api_services.getGateStatus()
+        #web socket#
+        self.client =  QtWebSockets.QWebSocket("",QtWebSockets.QWebSocketProtocol.Version13,None)
+        self.client.error.connect(self.onError)
+        self.client.open(QUrl("ws://10.13.2.106:6000/gate"))
+        self.client.connected.connect(self.onConnect)
+        self.client.textMessageReceived.connect(self.onMessageReceived)
+        self.client.disconnected.connect(self.onDisconnect)
 
         #prepare Dialog
         self.dialog_add_saldo = None
@@ -111,14 +105,16 @@ class DashboardController(QMainWindow):
         print("onPong - time: {} ; payload: {}".format(elapsedTime, payload))
     
     def onMessageReceived(self,data):
-        data = json.loads(data)
-        self.ui.status_internet.setText(data['price'])
-        if data['gate'] == 1 and self.gate_thread.gate_status != 1 : 
-            self.gate_thread.gate_status = 1
-            self.gate_thread.openGate()
-        elif data['gate'] == 0 and self.gate_thread.gate_status != 0 : 
-            self.gate_thread.gate_status = 0
-            self.gate_thread.closeGate()
+        if self.gate_thread.__is_connected :
+            data = json.loads(data)
+            self.ui.status_internet.setText(data['price'])
+            actual_gate = self.gate_thread.getGateStatus()
+            if data['gate'] == 1 and actual_gate != 1 : 
+                self.gate_thread.openGate()
+
+            elif data['gate'] == 0 and actual_gate != 0 : 
+                self.gate_thread.closeGate()
+
         pass
 
     def __open_dialog_add_saldo(self):

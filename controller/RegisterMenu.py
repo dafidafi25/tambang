@@ -26,31 +26,45 @@ class DialogRegister(QDialog):
         username = self.ui.input_username_2.text()
         generated_key = hex_random_value(6)
 
-        url = 'http://0.0.0.0:6000/api/register'
-        myobj = {'username': username,
-                 'email' : email,
-                 'phone' : phone,
-                 'saldo' : saldo,
-                 'uid' : uid,
-                 'key' : toHexString(generated_key)
-                }
+        # url = 'http://0.0.0.0:6000/api/register'
+        # myobj = {'username': username,
+        #          'email' : email,
+        #          'phone' : phone,
+        #          'saldo' : saldo,
+        #          'uid' : uid,
+        #          'key' : toHexString(generated_key)
+        #         }
 
-        x = requests.post(url, json = myobj)
+        # x = requests.post(url, json = myobj)
 
         
-        if x.status_code < 200 or x.status_code >299:
-            return False
+        # if x.status_code < 200 or x.status_code >299:
+        #     return False
         
-        print(email,phone,saldo,uid,username)
+        # print(email,phone,saldo,uid,username)
+        print("Coba register")
 
-        isLoaded = self.ui.rfid_service.loadAuthKey([0xff,0xff,0xff,0xff,0xff,0xff], 1)
+
+        if self.ui.rfid_service.isNewCard():
+            isLoaded = self.ui.rfid_service.loadAuthKey([0xff,0xff,0xff,0xff,0xff,0xff], 1)
+            try:
+                self.ui.rfid_service.get_uid()
+                self.ui.rfid_service.loadAuthKey([0xff,0xff,0xff,0xff,0xff,0xff], type = 1)
+                tag = self.ui.rfid_service.read_block(7,1)
+                print(tag)
+                if len(tag) > 0 : self.ui.rfid_service.card_signal.emit(toHexString(tag))
+            
+            except Exception as err:
+                print(err)
+
+            print(isLoaded)
         
-        if not isLoaded : return False
-        print(generated_key)
-        isSuccess = self.ui.rfid_service.set_wallet_sector( saldo,generated_key, 5, 1)
+        # if not isLoaded : return False
+        # print(generated_key)
+        # isSuccess = self.ui.rfid_service.set_wallet_sector( saldo,generated_key, 5, 1)
 
-        if not isSuccess :return False
-        return True
+        # if not isSuccess :return False
+        # return True
 
     def __scan_rfid(self):
         new_card_key = [0xff,0xff,0xff,0xff,0xff,0xff]

@@ -288,13 +288,16 @@ if __name__=="__main__":
             continue
         
         try:
-            response = SmartReader.get_uid()
+            # response = SmartReader.get_uid()
             isAuth = SmartReader.load_bkey([0xff,0xff,0xff,0xff,0xff,0xff])
-
             if isAuth:
-                result = SmartReader.read_block(0,0)
-                print(result)
+                SmartReader.setWalletSector(10000,[0x00,0x00,0x00,0x00,0x00,0x00], 4,1)
+
+                result = SmartReader.read_block(4,0)
+                print(toHexString(result))
                 # value = SmartReader.read_value_block(5,1)
+            
+            SmartReader.diconnect()
                 
         except Exception as err:
             print(err)

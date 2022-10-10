@@ -160,6 +160,7 @@ def updateSaldo():
     if (content_type == 'application/json'):
         saldo = request.json['saldo']
         uid = request.json['uid']
+        key = request.json['key']
         result = db.update_saldo(uid,saldo)
         return jsonify(result)
 

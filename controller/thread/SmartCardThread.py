@@ -52,7 +52,6 @@ class SmartCardThread(QThread):
         if len(response) > 0 :
             print(response)
         else : print("gagal")
-    
 
     def set_wallet_sector(self, saldo,random_key, BLOCK_NUMBER, type):
         write_response, sector_response = self.__smart_card_service.setWalletSector(int(saldo),random_key, BLOCK_NUMBER, type)
@@ -75,6 +74,9 @@ class SmartCardThread(QThread):
         
         print("Set Wallet Berhasil")
         return True
+
+    def get_uid(self):
+        self.__smart_card_service.get_uid()
     
     def increment_block():
         pass

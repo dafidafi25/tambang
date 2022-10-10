@@ -31,7 +31,10 @@ class gate:
         cmd = [self.GATE_ADDRESS,CHECK_GATE,FIXED_DATA]
         verify_bits = self.verifyBits(cmd)     
         cmd.append(verify_bits)
-        return self.sendCmd(cmd)
+        print(cmd)
+        respon = self.sendCmd(cmd)
+        respon = list(respon)
+        return respon
 
     def openGate(self):
         cmd = [self.GATE_ADDRESS,OPEN_GATE,FIXED_DATA]
@@ -55,7 +58,7 @@ class gate:
         response = []
         
         response = (self.serial.read(4))
-        print(response)
+        # print(response)
 
         # if(self.debug):
         #     print(response,cmd)
@@ -96,11 +99,20 @@ class gate:
 
 if __name__ == "__main__":
     BAUD_RATE = 9600
-    USB_PORT = "/dev/ttyUSB0"
+    USB_PORT = "/dev/ttyUSB1"
     GATE_ADDRESS = 0x05
-    test = gate(GATE_ADDRESS=GATE_ADDRESS,BAUD_RATE= BAUD_RATE,USB_PORT=USB_PORT)
-    print(test.serial_ports())
-    # # status_byte,status_string = test.getGateStatus()
+    test = gate(GATE_ADDRESS=GATE_ADDRESS,BAUD_RATE= BAUD_RATE)
+    test.serial_ports()
+    test.connectGate()
+
+    status_byte = test.getGateStatus()
+
+    wawa = list(status_byte)
+    print(wawa)
+
+    
+
+    # print(list(status_byte.decode))
     # test.closeGate()
     # sleep(2)
     # test.openGate()
