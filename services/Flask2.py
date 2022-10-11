@@ -79,7 +79,6 @@ def setGateOpen():
 ### To set gate to close
 @app.route("/api/gate/close", methods=["get"])
 def setGateClose():
-    print("Request Close")
     try:
         id = 1
         db.update_gate(0, id)
@@ -108,6 +107,25 @@ def setPrice():
         if result : return jsonify({"valid": True, "Message":"Price Updated"})
         else : return jsonify({"valid": False, "Message":"Price not Updated"})
 
+### Set cctv
+@app.route("/api/cctv/set", methods=["post"])
+def setCCTV():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        new_price = request.json['cctv']
+        result = db.update_gate_price(new_price, 1)
+        if result : return jsonify({"valid": True, "Message":"Price Updated"})
+        else : return jsonify({"valid": False, "Message":"Price not Updated"})
+
+### Set smartcard
+@app.route("/api/smartcard/set", methods=["post"])
+def setSmartCard():
+    content_type = request.headers.get('Content-Type')
+    if (content_type == 'application/json'):
+        new_price = request.json['smartcard']
+        result = db.update_gate_price(new_price, 1)
+        if result : return jsonify({"valid": True, "Message":"Price Updated"})
+        else : return jsonify({"valid": False, "Message":"Price not Updated"})
 
 ### Get User
 @app.route("/api/user/get", methods=["get"])
@@ -154,14 +172,14 @@ def getUserByUid():
         else : return jsonify({"Message":"Data Not Found"}),302
 
 
-@app.route("/api/saldo", methods=["POST"])
+@app.route("/api/saldo", methods =["POST"])
 def updateSaldo():
     content_type = request.headers.get('Content-Type')
     if (content_type == 'application/json'):
         saldo = request.json['saldo']
         uid = request.json['uid']
         key = request.json['key']
-        result = db.update_saldo(uid,saldo)
+        result = db.update_saldo(uid=uid, key=key,newSaldo=saldo)
         return jsonify(result)
 
 @app.route("/api/transaksi/list", methods=["GET"])

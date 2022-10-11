@@ -50,7 +50,7 @@ class SmartCardThread(QThread):
     def read_value_block(self, BLOCK_NUMBER, type):
         response = self.__smart_card_service.read_value_block(BLOCK_NUMBER, type)
         if len(response) > 0 :
-            print(response)
+            return response
         else : print("gagal")
 
     def set_wallet_sector(self, saldo,random_key, BLOCK_NUMBER, type):

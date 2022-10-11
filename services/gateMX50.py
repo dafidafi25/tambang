@@ -31,7 +31,6 @@ class gate:
         cmd = [self.GATE_ADDRESS,CHECK_GATE,FIXED_DATA]
         verify_bits = self.verifyBits(cmd)     
         cmd.append(verify_bits)
-        print(cmd)
         respon = self.sendCmd(cmd)
         respon = list(respon)
         return respon
@@ -41,7 +40,6 @@ class gate:
 
         verify_bits = self.verifyBits(cmd)     
         cmd.append(verify_bits)
-        print('buka')
 
         return self.sendCmd(cmd)
 
@@ -56,9 +54,8 @@ class gate:
     def sendCmd(self,cmd):
         self.serial.write(cmd)
         response = []
-        
         response = (self.serial.read(4))
-        # print(response)
+        int_list = list(response)
 
         # if(self.debug):
         #     print(response,cmd)

@@ -69,8 +69,8 @@ class ApiServices(QThread):
         myobj = {'id': id, "price":price}
         requests.post(f'{self.base_url}/transaction', json=myobj)
 
-    def setSaldo(self, price,uid):
-        myobj = {'saldo': price, "uid":uid}
+    def setSaldo(self, price, key ,uid):
+        myobj = {'saldo': price, 'key': key, "uid":uid}
         requests.post(f'{self.base_url}/saldo', json=myobj)
         pass
 

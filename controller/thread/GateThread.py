@@ -22,14 +22,13 @@ class GateThread(QThread):
         self.USB_PORT = None
         self.__gate_services =  gate(self.GATE_ADDRESS,self.BAUD_RATE)
         self.apiServices = ApiServices()     
-        self.__is_connected = False
+        self.is_connected = False
 
         self.__is_sync = False
     
     def openGate(self):
         self.__gate_services.openGate()
         self.apiServices.openGate()
-        self.gate_status = 1
     
     def getGateStatus(self):
         response = self.__gate_services.getGateStatus()
@@ -40,24 +39,23 @@ class GateThread(QThread):
         if status == 9 : return True
         elif status == 12 : return False
         print("Status is not Valid")
-        return False
+        return None
             
     
     def closeGate(self):
         self.__gate_services.closeGate()
         self.apiServices.closeGate()
-        self.gate_status = 0
     
     def reset(self):
-        self.__is_connected = False
+        self.is_connected = False
     
     def run(self):
         while(True):
             if self.__gate_services.serial_ports():
-                if not self.__is_connected:
+                if not self.is_connected:
                     try:
                         self.__gate_services.connectGate()
-                        self.__is_connected = True 
+                        self.is_connected = True 
 
                         if not self.__is_sync:
                             gate_status = self.getGateStatus()
@@ -69,6 +67,12 @@ class GateThread(QThread):
                     except Exception as err:
                         print(err)
                 else:
+                    if not self.__is_sync:
+                            gate_status = self.getGateStatus()
+                            if gate_status : self.apiServices.openGate()
+                            else: self.apiServices.closeGate()
+                            
+                            self.__is_sync = True
                     self.connect_signal.emit(True)
             else:
                 self.reset()

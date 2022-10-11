@@ -20,10 +20,12 @@ GET_USER_AUTH = "SELECT * FROM user where username LIKE %s and password LIKE %s"
 CREATE_USER = "INSERT INTO card (UID,keyA,saldo,username,email,phone) values(%s,%s,%s,%s,%s,%s)"
 CREATE_TRANSACTION_LOG = "insert into transaksi (created_at,card_id,plate_number,status,price) values(%s,%s,%s,%s,%s)"
 
-UPDATE_SALDO = "UPDATE card SET saldo = %s WHERE UID = %s"
+UPDATE_SALDO = "UPDATE card SET saldo = %s, keyA = %s WHERE UID = %s"
 UPDATE_GATE = "UPDATE gate SET gate = %s WHERE id = %s "
 UPDATE_GATE_STATUS = "UPDATE gate SET gate_status = %s WHERE id = %s"
 UPDATE_GATE_PRICE = "UPDATE gate SET price = %s WHERE id = %s"
+UPDATE_CCTV_STATUS = "UPDATE gate SET cctv = %s WHERE id = %s"
+UPDATE_SMART_CARD_STATUS= "UPDATE gate SET smartcard = %s WHERE id = %s"
 
 DELETE_CARD = "DELETE FROM card WHERE id LIKE "
 ### END OF LIST OF USED QUERY ###
@@ -70,6 +72,7 @@ class Databases_2:
         if len(json_data) > 0 : 
             json_data = json_data[0]
             json_data['saldo'] = AESCipher(key1).decrypt(json_data['saldo']).decode("utf-8")
+            json_data['keyA'] = AESCipher(json_data['saldo']).decrypt(json_data['keyA']).decode("utf-8")
             return json_data
         else : return []
     
@@ -156,18 +159,22 @@ class Databases_2:
     
     def create_user(self,uid,key,saldo,username,email,phone):
         con = mdb.connect(self.DB_HOST, self.DB_USER, self.DB_PASSWORD, self.DB_NAME)
+
         if con:
             # insert some data
             cur = con.cursor()
             value = (AESCipher(key2).encrypt(uid),AESCipher(str(saldo)).encrypt(key),AESCipher(key1).encrypt(str(saldo)),username,email,phone)
-            cur.execute(CREATE_USER,value)
+            try:
+                cur.execute(CREATE_USER,value)
 
-            affected_table = cur.rowcount
+                affected_table = cur.rowcount
 
-            con.commit()
-            cur.close()
-            print ("Number of rows updated: %d" % affected_table)
-            return True
+                con.commit()
+                cur.close()
+                print ("Number of rows updated: %d" % affected_table)
+                return True
+            except:
+                return False
         return False
     
     def create_transaction_log(self,card_id,plate_number,status,price):
@@ -188,12 +195,13 @@ class Databases_2:
         return False
 
     
-    def update_saldo(self,uid,newSaldo):
+    def update_saldo(self,uid,key,newSaldo):
         try:
             con = mdb.connect(self.DB_HOST, self.DB_USER, self.DB_PASSWORD, self.DB_NAME)
             # insert some data
             cur = con.cursor()
-            value = (AESCipher(str(key1)).encrypt(newSaldo),uid)
+            print(type(newSaldo), type(key) , uid)
+            value = (AESCipher(str(key1)).encrypt(str(newSaldo)), AESCipher(str(newSaldo)).encrypt(key),uid)
             cur.execute(UPDATE_SALDO,value)
 
             affected_table = cur.rowcount
@@ -201,6 +209,10 @@ class Databases_2:
             con.commit()
             cur.close()
             print ("Number of rows updated: %d" % affected_table)
+
+            data = self.get_user_by_uid(uid)
+            print(data)
+
             return True
         except mdb.Error as e:
             print ('Time to Rollback..')
@@ -278,6 +290,53 @@ class Databases_2:
         except Exception as err:
             print(err)
             return False
+    
+    def update_cctv_status(self, cctv, id):
+        try:
+            con = mdb.connect(self.DB_HOST, self.DB_USER, self.DB_PASSWORD, self.DB_NAME)
+            # insert some data
+            cur = con.cursor()
+            value = (cctv,id)
+            cur.execute(UPDATE_CCTV_STATUS,value)
+
+            affected_table = cur.rowcount
+
+            con.commit()
+            cur.close()
+            print ("Number of rows updated: %d" % affected_table)
+            return True
+        except mdb.Error as e:
+            print ('Time to Rollback..')
+            con.rollback()
+            print ("Error %d: %s" % (e.args[0], e.args[1]))
+            return False
+        except Exception as err:
+            print(err)
+            return False
+
+    def update_smartcard_status(self, smartcard, id):
+        try:
+            con = mdb.connect(self.DB_HOST, self.DB_USER, self.DB_PASSWORD, self.DB_NAME)
+            # insert some data
+            cur = con.cursor()
+            value = (smartcard,id)
+            cur.execute(UPDATE_SMART_CARD_STATUS,value)
+
+            affected_table = cur.rowcount
+
+            con.commit()
+            cur.close()
+            print ("Number of rows updated: %d" % affected_table)
+            return True
+        except mdb.Error as e:
+            print ('Time to Rollback..')
+            con.rollback()
+            print ("Error %d: %s" % (e.args[0], e.args[1]))
+            return False
+        except Exception as err:
+            print(err)
+            return False
+
 
     def delete_user(self,id):
         try:
